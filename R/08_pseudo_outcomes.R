@@ -1,5 +1,11 @@
 # ==============================================================================
 # Pseudo-outcome composition diagnostics (Appendix B)
+# ------------------------------------------------------------------------------
+# Table B3 uses the four full-expenditure waves. Table B4 reports both
+# unweighted and weighted household-composition pseudo-outcome regressions. The
+# reconstruction interprets "Weighted" as HES survey weighting, because the
+# observation count is unchanged and the source HES weight is available in every
+# wave. This interpretation is explicitly checked in the validation workflow.
 # ==============================================================================
 
 suppressPackageStartupMessages({
@@ -13,8 +19,6 @@ source(file.path("R", "00_config.R"))
 source(file.path("R", "01_hes_schema_adapter.R"))
 source(file.path("R", "04_main_did.R"))
 
-# A deliberately light loader: pseudo-outcome regressions should not condition
-# the sample on the variable that is itself being tested as an outcome.
 load_pseudo_outcome_data <- function(waves = WAVES) {
   map_dfr(waves, function(w) {
     raw <- load_one_matched_wave(w)
@@ -31,17 +35,23 @@ load_pseudo_outcome_data <- function(waves = WAVES) {
         female = recode_female(ref_sex),
         owned_trust = as.integer(recode_tenure(tenure_code) == "Owned/Trust"),
         higher_education = recode_higher_education(ref_education),
-        household_comp_group = recode_household_comp(household_comp)
+        household_comp_group = recode_household_comp(household_comp),
+        survey_weight = suppressWarnings(as.numeric(survey_weight))
       )
   })
 }
 
-fit_pseudo_outcome <- function(df, outcome, weights = NULL) {
+fit_pseudo_outcome <- function(df, outcome, weight_var = NULL) {
   fml <- as.formula(paste0(outcome, " ~ treated_area:post | wave + ta_code"))
-  if (is.null(weights)) {
+  if (is.null(weight_var)) {
     feols(fml, data = df, cluster = ~ta_code)
   } else {
-    feols(fml, data = df, weights = weights, cluster = ~ta_code)
+    feols(
+      fml,
+      data = df,
+      weights = as.formula(paste0("~", weight_var)),
+      cluster = ~ta_code
+    )
   }
 }
 
@@ -73,16 +83,12 @@ composition_indicators <- function(df) {
   out
 }
 
-fit_household_composition_pseudo_outcomes <- function(
-    df = load_pseudo_outcome_data(),
-    analysis_weights = NULL) {
-
+fit_household_composition_pseudo_outcomes <- function(df = load_pseudo_outcome_data()) {
   dat <- composition_indicators(df)
   vars <- grep("^comp_", names(dat), value = TRUE)
 
   list(
     unweighted = set_names(vars) %>% map(~ fit_pseudo_outcome(dat, .x)),
-    weighted = if (is.null(analysis_weights)) NULL else
-      set_names(vars) %>% map(~ fit_pseudo_outcome(dat, .x, weights = analysis_weights))
+    weighted = set_names(vars) %>% map(~ fit_pseudo_outcome(dat, .x, "survey_weight"))
   )
 }
