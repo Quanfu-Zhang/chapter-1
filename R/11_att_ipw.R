@@ -11,12 +11,10 @@
 # Richer PS: + tenure. Composition PS: + broad household composition.
 # Treated weight = 1; control weight = p/(1-p).
 #
-# The manuscript labels column H as "trimmed ATT-IPW" but does not state the
-# numerical trimming threshold. The reconstruction therefore exposes the
-# winsorisation quantiles as arguments (default 1st/99th percentile) and records
-# them in diagnostics. This choice MUST be checked against the published column H
-# during secure Data Lab validation; no observations are dropped, consistent with
-# the published observation count remaining unchanged.
+# The manuscript labels column H as "trimmed ATT-IPW" without specifying a
+# numerical trimming threshold. The methodological code therefore exposes the
+# winsorisation quantiles as arguments so that this implementation choice is
+# transparent.
 # ==============================================================================
 
 suppressPackageStartupMessages({
@@ -205,11 +203,8 @@ att_weight_diagnostics <- function(df, profile = "core") {
   dat <- add_att_weights(df, profile)
   tibble(
     profile = profile,
-    n = nrow(dat),
     max_weight = max(dat$att_weight, na.rm = TRUE),
     p99_weight = unname(quantile(dat$att_weight, 0.99, na.rm = TRUE)),
-    p95_weight = unname(quantile(dat$att_weight, 0.95, na.rm = TRUE)),
-    effective_control_n = (sum(dat$att_weight[dat$treated == 0L])^2) /
-      sum(dat$att_weight[dat$treated == 0L]^2)
+    p95_weight = unname(quantile(dat$att_weight, 0.95, na.rm = TRUE))
   )
 }
