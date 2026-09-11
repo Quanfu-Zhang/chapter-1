@@ -10,15 +10,15 @@ The paper uses New Zealand's Household Economic Survey (HES), linked administrat
 
 This repository is intended for **academic communication and methodological transparency**. It presents a cleaned, readable reconstruction of the main analytical workflow used in the study: HES harmonisation, residence classification, earthquake-intensity assignment, propensity-score matching, difference-in-differences estimation, heterogeneity analysis, robustness checks, and figure/table construction.
 
-It is **not a turnkey replication package** and should not be described as enabling independent reproduction of the confidential microdata analysis. The underlying HES and linked administrative microdata are held in Stats NZ's Integrated Data Infrastructure (IDI) and are subject to project-specific approval. General Data Lab or IDI access does not by itself authorise another researcher to access or analyse this project's restricted data.
+The underlying HES and linked administrative microdata are held in Stats NZ's Integrated Data Infrastructure (IDI). Restricted-data components are intended to be run within the controlled Stats NZ IDI environment by researchers approved for the relevant project, in accordance with Stats NZ requirements.
 
-The code therefore serves primarily as an illustration of the research design and implementation principles reported in the paper.
+The code serves as an illustration of the research design and implementation principles reported in the paper.
 
 ## Reconstruction note
 
 The original Chapter 1 code was developed incrementally and included separate pre-/post-2015/16 HES scripts, exploratory blocks, Data Lab-specific paths, and intermediate specifications. The public codebase was reconstructed and cleaned from those surviving scripts together with the final accepted manuscript.
 
-The repository does **not** claim that every line is the exact historical source code executed during the project. Where the surviving scripts and the accepted paper differ, the public code follows the final analytical specification described in the paper. See `docs/RECONSTRUCTION_NOTE.md`.
+The repository does not claim that every line is the exact historical source code executed during the project. Where the surviving scripts and the accepted paper differ, the public code follows the final analytical specification described in the paper. See `docs/RECONSTRUCTION_NOTE.md`.
 
 A major design feature is `R/01_hes_schema_adapter.R`. HES variable names changed from 2015/16 onward; instead of publishing duplicate “before” and “after” analysis scripts, both naming regimes are converted to one canonical schema before matching or estimation.
 
@@ -26,7 +26,7 @@ A major design feature is `R/01_hes_schema_adapter.R`. HES variable names change
 
 ```text
 R/
-  00_config.R                    Analysis constants and paths
+  00_config.R                    Analysis constants and generic paths
   01_hes_schema_adapter.R        Pre-/post-2015/16 HES harmonisation
   idi/
     02_build_wave_samples.R      Illustrative residence classification and sample construction
@@ -44,12 +44,12 @@ R/
   11_att_ipw.R                   ATT-IPW and bridge specifications
   12_output_builders.R           Figure/table builders
   14_census_context.R            Public Census regional-income comparison
-  15_appendix_diagnostics.R      Appendix diagnostic builders
+  15_appendix_diagnostics.R      Balance and composition diagnostic helpers
   99_run_order.R                 Script map / load order
 
 docs/
   CODE_GUIDE.md                  How the public code is organised
-  DATA_ACCESS.md                 Restricted-data and approval limitations
+  DATA_ACCESS.md                 Restricted-data access requirements
   DATA_DICTIONARY.md             Canonical variables and schema mapping
   OUTPUT_MAP.md                  Paper outputs and corresponding code modules
   RECONSTRUCTION_NOTE.md         Provenance and reconstruction choices
@@ -70,7 +70,7 @@ The code reflects the final paper's analytical design:
 
 ## Restricted-data components
 
-Files under `R/idi/` document the logic used for restricted-data processing, including administrative-address harmonisation, residence groups, control-pool construction, and MMI assignment. They are published to explain the method, not to provide access to the underlying records.
+Files under `R/idi/` document the logic used for restricted-data processing, including administrative-address harmonisation, residence groups, control-pool construction, and MMI assignment. They are published to explain the method and contain no restricted records or database connection configuration.
 
 No restricted microdata, identifiers, confidential extracts, or unapproved outputs are included in this repository. The `.gitignore` blocks common microdata formats by default.
 
@@ -80,13 +80,13 @@ No restricted microdata, identifiers, confidential extracts, or unapproved outpu
 
 ## Data access
 
-The study was conducted under Stats NZ IDI project **MAA2024-54**. Access to the relevant microdata is governed by Stats NZ approval and the scope of the approved research project. A person being an approved Data Lab researcher does **not** automatically have authority to access or analyse this project's data.
+The study was conducted under Stats NZ IDI project **MAA2024-54**. Restricted-data execution must take place in the controlled IDI environment by researchers approved for the relevant project and in accordance with Stats NZ requirements.
 
 See `docs/DATA_ACCESS.md`.
 
 ## Use and citation
 
-The code may be useful for understanding the paper's empirical design, adapting similar methods to separately approved research, teaching, or methodological discussion. Any such use remains subject to the user's own data-access permissions and institutional requirements.
+The code may be useful for understanding the paper's empirical design, teaching, methodological discussion, or adapting similar methods within an appropriately approved research environment.
 
 Please cite the article and, where appropriate, this repository. Machine-readable citation metadata are provided in `CITATION.cff`.
 
