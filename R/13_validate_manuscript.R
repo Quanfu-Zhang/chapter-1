@@ -10,6 +10,7 @@
 
 suppressPackageStartupMessages({
   library(dplyr)
+  library(tidyr)
   library(tibble)
   library(purrr)
   library(readr)
