@@ -1,31 +1,60 @@
-# Never commit confidential or derived microdata
+# ==============================================================================
+# Restricted-data protection
+# ==============================================================================
+# The repository is code-only. Keep every local data directory outside Git.
+data/
+secure-data/
+restricted-data/
+
+# Common microdata / analytical data formats
 *.csv
+*.tsv
 *.parquet
 *.feather
+*.arrow
 *.rds
 *.RData
+*.rda
 *.fst
 *.sav
 *.dta
+*.sas7bdat
+*.sqlite
+*.db
 
-# Local outputs
+# Archives can accidentally contain restricted extracts
+*.zip
+*.7z
+*.tar
+*.tar.gz
+
+# Local outputs (may require Stats NZ output checking)
 output/*
 !output/.gitkeep
-figures/*
-tables/*
+figures/
+tables/
+diagnostics/
+validation/
 
-# Credentials / environment
+# Credentials / environment / connection material
 .Renviron
 .env
+.env.*
 *.pem
 *.key
+*.pfx
+*.p12
+credentials*
+secrets*
 
 # R / RStudio
 .Rhistory
 .Rproj.user/
 .Ruserdata
+.Rproj.user.shared/
 
 # OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
+.idea/
