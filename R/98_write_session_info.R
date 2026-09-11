@@ -1,5 +1,5 @@
 # ==============================================================================
-# Freeze software environment metadata after the validated Data Lab run
+# Optional software-environment metadata for controlled IDI use
 # ==============================================================================
 
 write_session_info <- function(path = file.path("docs", "sessionInfo.txt")) {
