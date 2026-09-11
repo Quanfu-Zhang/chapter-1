@@ -1,9 +1,9 @@
 # ==============================================================================
 # Chapter 1 methodological code: configuration
 # ==============================================================================
-# Analytical constants reported in the accepted paper. Machine-specific paths are
-# supplied through environment variables so that no Data Lab paths, credentials,
-# or confidential data locations are committed to the public repository.
+# Analytical constants reported in the accepted paper. Local paths are kept
+# generic so that no restricted data locations or environment-specific database
+# details are committed to the public repository.
 
 options(stringsAsFactors = FALSE)
 
@@ -43,8 +43,9 @@ PSM_REPLACE <- FALSE
 PSM_RAW_CALIPER <- TRUE
 MATCH_SEED <- 2024L
 
-# Local paths are illustrative only. Restricted-data execution requires the
-# appropriate Stats NZ project approval and secure environment.
+# Restricted-data execution must take place in the controlled Stats NZ IDI
+# environment by researchers approved for the relevant project, in accordance
+# with Stats NZ requirements.
 DATA_ROOT <- Sys.getenv("CH1_DATA_ROOT", unset = "data")
 OUTPUT_ROOT <- Sys.getenv("CH1_OUTPUT_ROOT", unset = "output")
 
@@ -60,13 +61,6 @@ ANALYSIS_DIR <- file.path(DATA_ROOT, "analysis")
 FIGURE_DIR <- file.path(OUTPUT_ROOT, "figures")
 TABLE_DIR <- file.path(OUTPUT_ROOT, "tables")
 DIAGNOSTIC_DIR <- file.path(OUTPUT_ROOT, "diagnostics")
-
-IDI_SANDBOX_SCHEMA <- Sys.getenv("CH1_IDI_SCHEMA", unset = "DL-MAA2024-54")
-IDI_REFRESH <- Sys.getenv("CH1_IDI_REFRESH", unset = "IDI_Clean_202503")
-CLEAN_READ_HES_SCHEMA <- Sys.getenv(
-  "CH1_CLEAN_READ_HES_SCHEMA",
-  unset = "[IDI_Adhoc].[clean_read_HES]"
-)
 
 MMI_LOOKUP_PATH <- Sys.getenv(
   "CH1_MMI_LOOKUP_PATH",
