@@ -1,18 +1,26 @@
-# Canterbury earthquakes, household income and expenditure — replication code
+# Canterbury earthquakes, household income and expenditure — methodological code
 
-Replication repository for:
+Code accompanying:
 
 > Zhang, Q., Noy, I., and Saglam, Y. **The impact of the Canterbury earthquakes on household income and expenditure in the Canterbury region in New Zealand.** *Natural Hazards and Earth System Sciences* (accepted).
 
-The paper uses New Zealand's Household Economic Survey (HES), linked administrative address histories, and meshblock-level earthquake intensity to estimate propensity-score-matched difference-in-differences models of household income and expenditure after the 2010–2011 Canterbury earthquakes.
+The paper uses New Zealand's Household Economic Survey (HES), linked administrative address histories, and meshblock-level earthquake intensity to study household income and expenditure after the 2010–2011 Canterbury earthquakes.
 
-## What this repository contains
+## Purpose of this repository
 
-This is a **code-only replication repository**. The underlying HES and linked administrative microdata are confidential and cannot be redistributed. Researchers with authorised Stats NZ Data Lab / IDI access can use the code to reconstruct the study sample and rerun the reported specifications.
+This repository is intended for **academic communication and methodological transparency**. It presents a cleaned, readable reconstruction of the main analytical workflow used in the study: HES harmonisation, residence classification, earthquake-intensity assignment, propensity-score matching, difference-in-differences estimation, heterogeneity analysis, robustness checks, and figure/table construction.
 
-The public codebase was reconstructed and cleaned from the original working scripts and the final accepted manuscript. The accepted manuscript is treated as the authoritative analytical specification. Numerical targets from the published tables are encoded in `R/13_validate_manuscript.R` so the reconstructed pipeline can be checked against the final results inside the secure Data Lab.
+It is **not a turnkey replication package** and should not be described as enabling independent reproduction of the confidential microdata analysis. The underlying HES and linked administrative microdata are held in Stats NZ's Integrated Data Infrastructure (IDI) and are subject to project-specific approval. General Data Lab or IDI access does not by itself authorise another researcher to access or analyse this project's restricted data.
 
-A major design feature is the HES schema adapter in `R/01_hes_schema_adapter.R`. HES variable names changed from 2015/16 onward; instead of maintaining duplicate “before” and “after” analysis scripts, both naming regimes are converted to a single canonical schema before matching or estimation.
+The code therefore serves primarily as an illustration of the research design and implementation principles reported in the paper.
+
+## Reconstruction note
+
+The original Chapter 1 code was developed incrementally and included separate pre-/post-2015/16 HES scripts, exploratory blocks, Data Lab-specific paths, and intermediate specifications. The public codebase was reconstructed and cleaned from those surviving scripts together with the final accepted manuscript.
+
+The repository does **not** claim that every line is the exact historical source code executed during the project. Where the surviving scripts and the accepted paper differ, the public code follows the final analytical specification described in the paper. See `docs/RECONSTRUCTION_NOTE.md`.
+
+A major design feature is `R/01_hes_schema_adapter.R`. HES variable names changed from 2015/16 onward; instead of publishing duplicate “before” and “after” analysis scripts, both naming regimes are converted to one canonical schema before matching or estimation.
 
 ## Repository structure
 
@@ -21,83 +29,70 @@ R/
   00_config.R                    Analysis constants and paths
   01_hes_schema_adapter.R        Pre-/post-2015/16 HES harmonisation
   idi/
-    02_build_wave_samples.R      Residence groups, control pool, MMI linkage
+    02_build_wave_samples.R      Illustrative residence classification and sample construction
   public/
-    00_mmi_overlay.R             Public GeoNet × meshblock MMI construction
-  03_psm_matching.R              Baseline wave-specific PSM
+    00_mmi_overlay.R             GeoNet × meshblock MMI construction
+  03_psm_matching.R              Wave-specific propensity-score matching
   04_main_did.R                  Main income and expenditure DiD models
-  05_expenditure_models.R        18 expenditure categories + income heterogeneity
-  06_event_study.R               Event study and pre-trend Wald tests
-  07_psm_robustness.R            Caliper / 1:1 / exclude-sex checks
-  07b_matching_sensitivity.R     Probit, LPM, leave-one-covariate-out checks
+  05_expenditure_models.R        Detailed expenditure + income heterogeneity
+  06_event_study.R               Event-study specification and pre-trend tests
+  07_psm_robustness.R            Reported matching robustness checks
+  07b_matching_sensitivity.R     Additional matching sensitivity checks
   08_pseudo_outcomes.R           Composition and covariate pseudo-outcomes
-  09_descriptives_migration.R    Appendix D and stay/relocation regressions
-  10_alternative_specs.R         Continuous MMI and alternative age controls
-  11_att_ipw.R                   ATT-IPW and Appendix I bridge specifications
-  12_output_builders.R           Tables and Figures 2–3
-  13_validate_manuscript.R       Numerical regression tests against the paper
+  09_descriptives_migration.R    Descriptive and stay/relocation analyses
+  10_alternative_specs.R         Continuous-MMI and alternative-age specifications
+  11_att_ipw.R                   ATT-IPW and bridge specifications
+  12_output_builders.R           Figure/table builders
   14_census_context.R            Public Census regional-income comparison
-  15_appendix_diagnostics.R      Appendix A–B diagnostic table builders
-  99_run_order.R                 Orchestration / run order
+  15_appendix_diagnostics.R      Appendix diagnostic builders
+  99_run_order.R                 Script map / load order
 
 docs/
-  DATA_ACCESS.md                 Restricted-data and confidentiality notes
+  CODE_GUIDE.md                  How the public code is organised
+  DATA_ACCESS.md                 Restricted-data and approval limitations
   DATA_DICTIONARY.md             Canonical variables and schema mapping
-  RECONSTRUCTION_NOTE.md         Provenance of the reconstructed codebase
-  REPRODUCTION_GUIDE.md          Secure-environment reproduction workflow
-  REPRODUCIBILITY_AUDIT.md       Validation status and remaining checks
+  OUTPUT_MAP.md                  Paper outputs and corresponding code modules
+  RECONSTRUCTION_NOTE.md         Provenance and reconstruction choices
 ```
 
 ## Core analytical specification
 
-The baseline code follows the accepted paper:
+The code reflects the final paper's analytical design:
 
 - HES waves: 2006/07–2017/18.
 - Income outcomes: all 12 waves; the post-earthquake period begins in 2011/12.
 - Full expenditure outcomes: 2006/07, 2009/10, 2012/13 and 2015/16 only.
 - Treatment intensity: Low MMI = `[4, 7)`; High MMI = `>= 7`.
-- Matching: separately within each survey wave; 1:2 nearest-neighbour matching without replacement; logit propensity scores; raw propensity-score caliper 0.2; age, household size, sex and highest qualification as matching covariates.
+- Matching: separately within each survey wave; 1:2 nearest-neighbour matching without replacement; logit propensity scores; caliper 0.2; age, household size, sex and highest qualification as matching covariates.
 - Main DiD controls: reference-person age, age squared, sex and household size, with survey-wave and territorial-authority fixed effects and TA-clustered standard errors.
 - Detailed expenditure outcomes: `log(1 + |expenditure|)`.
 - Income heterogeneity: contemporaneous survey-wave median income.
 
-## Reproduction workflow
+## Restricted-data components
 
-The secure run has two stages.
+Files under `R/idi/` document the logic used for restricted-data processing, including administrative-address harmonisation, residence groups, control-pool construction, and MMI assignment. They are published to explain the method, not to provide access to the underlying records.
 
-**1. Inside the Stats NZ Data Lab**
-
-Construct wave-specific HES extracts and linked address histories, run `R/idi/02_build_wave_samples.R`, then run the PSM and analysis scripts. No row-level output should leave the secure environment.
-
-**2. Validate before release**
-
-Run `R/13_validate_manuscript.R`. It compares reconstructed estimates and sample sizes with the accepted manuscript, including the main DiD, PSM robustness checks, relocation regressions, continuous-MMI specification and event-study pre-trend tests. A release should only be tagged after all substantive validation checks pass or any remaining discrepancy is explicitly documented.
-
-See `docs/REPRODUCTION_GUIDE.md` for the detailed sequence.
+No restricted microdata, identifiers, confidential extracts, or unapproved outputs are included in this repository. The `.gitignore` blocks common microdata formats by default.
 
 ## Public-data components
 
-`R/public/00_mmi_overlay.R` provides the public spatial-overlay step used to assign maximum GeoNet shaking intensity to Stats NZ meshblocks. `R/14_census_context.R` reconstructs the aggregate 2006–2013 regional household-income comparison reported in Appendix F.
+`R/public/00_mmi_overlay.R` illustrates the spatial-overlay step used to assign GeoNet shaking intensity to Stats NZ meshblocks. `R/14_census_context.R` contains the aggregate regional comparison used for contextual analysis.
 
-Public source data are not duplicated here when they can be obtained from their original provider. See the documentation for expected input fields and licences.
+## Data access
 
-## Restricted data and confidentiality
+The study was conducted under Stats NZ IDI project **MAA2024-54**. Access to the relevant microdata is governed by Stats NZ approval and the scope of the approved research project. A person being an approved Data Lab researcher does **not** automatically have authority to access or analyse this project's data.
 
-The study was conducted in the Stats NZ Integrated Data Infrastructure under approved project **MAA2024-54**. Raw HES records, linked administrative data, confidential identifiers and unapproved outputs are not part of this repository. The `.gitignore` blocks common microdata formats by default.
+See `docs/DATA_ACCESS.md`.
 
-See `docs/DATA_ACCESS.md` before running or modifying the IDI components.
+## Use and citation
 
-## Reconstruction provenance
+The code may be useful for understanding the paper's empirical design, adapting similar methods to separately approved research, teaching, or methodological discussion. Any such use remains subject to the user's own data-access permissions and institutional requirements.
 
-The original project code was written incrementally and was not a single archival pipeline. This repository therefore does **not** claim that every line is the historical source code executed during analysis. It is a cleaned reconstruction of the final analytical workflow, grounded in the surviving scripts and the accepted manuscript and designed to reproduce the final reported results. See `docs/RECONSTRUCTION_NOTE.md`.
-
-## Citation
-
-Please cite the article and this repository. Machine-readable citation metadata are provided in `CITATION.cff`.
+Please cite the article and, where appropriate, this repository. Machine-readable citation metadata are provided in `CITATION.cff`.
 
 ## Licence
 
-Code and documentation are released under the Creative Commons Attribution 4.0 International licence (CC BY 4.0), consistent with the licence stated in the surviving project scripts.
+Code and documentation are released under the Creative Commons Attribution 4.0 International licence (CC BY 4.0).
 
 ## Contact
 
