@@ -1,9 +1,9 @@
 # ==============================================================================
-# Chapter 1 replication code: configuration
+# Chapter 1 methodological code: configuration
 # ==============================================================================
-# This file contains the analytical constants reported in the accepted paper.
-# Machine-specific paths are supplied through environment variables so that no
-# Data Lab paths, credentials, or confidential data locations are committed.
+# Analytical constants reported in the accepted paper. Machine-specific paths are
+# supplied through environment variables so that no Data Lab paths, credentials,
+# or confidential data locations are committed to the public repository.
 
 options(stringsAsFactors = FALSE)
 
@@ -43,6 +43,8 @@ PSM_REPLACE <- FALSE
 PSM_RAW_CALIPER <- TRUE
 MATCH_SEED <- 2024L
 
+# Local paths are illustrative only. Restricted-data execution requires the
+# appropriate Stats NZ project approval and secure environment.
 DATA_ROOT <- Sys.getenv("CH1_DATA_ROOT", unset = "data")
 OUTPUT_ROOT <- Sys.getenv("CH1_OUTPUT_ROOT", unset = "output")
 
@@ -58,7 +60,6 @@ ANALYSIS_DIR <- file.path(DATA_ROOT, "analysis")
 FIGURE_DIR <- file.path(OUTPUT_ROOT, "figures")
 TABLE_DIR <- file.path(OUTPUT_ROOT, "tables")
 DIAGNOSTIC_DIR <- file.path(OUTPUT_ROOT, "diagnostics")
-VALIDATION_DIR <- file.path(OUTPUT_ROOT, "validation")
 
 IDI_SANDBOX_SCHEMA <- Sys.getenv("CH1_IDI_SCHEMA", unset = "DL-MAA2024-54")
 IDI_REFRESH <- Sys.getenv("CH1_IDI_REFRESH", unset = "IDI_Clean_202503")
@@ -71,7 +72,3 @@ MMI_LOOKUP_PATH <- Sys.getenv(
   "CH1_MMI_LOOKUP_PATH",
   unset = file.path(DATA_ROOT, "public", "meshblock_mmi_lookup.csv")
 )
-
-COEF_TOLERANCE <- 0.15
-SE_TOLERANCE <- 0.15
-P_TOLERANCE <- 0.01
