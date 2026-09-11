@@ -61,7 +61,6 @@ add_named_expenditure_outcomes <- function(df) {
 summarise_descriptive_group <- function(df) {
   df <- add_named_expenditure_outcomes(df)
   tibble(
-    households = n_distinct(df$snz_hes_hhld_uid),
     age_mean = mean(df$ref_age, na.rm = TRUE),
     hh_size_mean = mean(df$hh_size, na.rm = TRUE),
     female_pct = 100 * mean(df$female, na.rm = TRUE),
