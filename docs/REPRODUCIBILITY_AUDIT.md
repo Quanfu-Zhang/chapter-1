@@ -1,76 +1,100 @@
-# Reproducibility audit before public release
+# Reproducibility audit
 
-This document records discrepancies between the uploaded working scripts and the accepted manuscript. It is an **internal release checklist**. Every item below should be resolved before the repository is made public and tagged as the replication archive.
+This document records the release status of the reconstructed Chapter 1 replication repository. The codebase is structurally complete, but the final archival tag should be created only after the secure Data Lab run has passed the numerical validation harness.
 
-## 1. Final estimation script is not the accepted-paper specification
+## Resolved in the reconstruction
 
-The uploaded `DID R codes.r` is an earlier working script. It differs materially from the accepted manuscript:
+### Final estimation specification
 
-- it initially loads only the four full-expenditure waves, whereas the accepted income regressions use all 12 HES waves from 2006/07 to 2017/18;
-- it defines the post period from 2012/13, whereas the accepted income specification begins the post period in 2011/12;
-- the main income/expenditure regressions omit age squared and the reference person's sex;
-- detailed expenditure outcomes are estimated in raw levels rather than `log(1 + |expenditure|)`;
-- the income heterogeneity split uses a pooled median rather than the survey-wave median;
-- it contains exploratory/unused code (`savings_rate`, plotting blocks, in-place exports) that should not appear in the archival release.
+The early `DID R codes.r` script is no longer used as the archival analysis script. The reconstructed pipeline now follows the accepted manuscript:
 
-**Required action:** locate the exact final analysis scripts or reconstruct them from the accepted specification and verify every reported table/figure inside the Data Lab.
+- all 12 HES waves for annual income outcomes;
+- 2011/12 as the first post-earthquake income wave;
+- four full-expenditure waves only for total/detailed expenditure;
+- age, age squared, sex and household size in the main DiD;
+- survey-wave and TA fixed effects with TA-clustered standard errors;
+- `log(1 + |expenditure|)` for detailed categories;
+- contemporaneous survey-wave median income for heterogeneity.
 
-## 2. Missing analysis components
+### Missing analytical modules
 
-The uploaded files do not contain the final code for:
+The repository now includes reconstructed modules for:
 
-- meshblock-to-MMI linkage;
-- pseudo-outcome composition tests (Appendix B);
-- event-study joint Wald tests (Appendix C) in their final form;
-- stay/relocation descriptive regressions (Table 4);
-- continuous-MMI and age-functional-form checks (Appendix H);
-- ATT-IPW diagnostics and bridge specifications (Appendix I);
-- final publication figures and table builders.
+- public meshblock-MMI overlay;
+- pseudo-outcome diagnostics;
+- final event-study and joint pre-trend tests;
+- stay/relocation descriptives and regressions;
+- continuous-MMI and age-functional-form checks;
+- ATT-IPW bridge specifications and diagnostics;
+- PSM robustness and propensity-link sensitivity checks;
+- Figures 2–3 and tabular result extraction;
+- Appendix A–B diagnostics and Appendix F public Census context;
+- numerical validation against accepted-paper targets.
 
-**Required action:** add the exact scripts used for the final manuscript, or reconstruct and validate them against the accepted numerical results.
+### HES naming change
 
-## 3. Sample-construction logic needs reconciliation
+The before/after-2015/16 duplication has been replaced by `R/01_hes_schema_adapter.R`. All downstream code uses one canonical variable schema.
 
-The working extraction scripts choose address records by a hard-coded source priority (`IR`, `HLFS`, `ACC`, `MSD`, `NOTIFY`) before sorting by date. This can allow an older IR record to dominate a later record from another source. The accepted manuscript instead describes the most recent pre-earthquake administrative address, with the long IR lookback used for IR-only cases.
+### Sample construction
 
-The working scripts also do not visibly implement two rules described in the manuscript:
+`R/idi/02_build_wave_samples.R` implements the manuscript description rather than the hard-coded source priority found in early scripts. It includes:
 
-1. the special bridge for cases whose most recent pre-earthquake region is missing but whose surrounding meshblock evidence places them in Canterbury; and
-2. exclusion of a small number of Group 2 households with evidence consistent with having left Canterbury before the earthquakes.
+- the 2010-01-01 to 2011-02-22 reference window;
+- extended IR lookback for otherwise unresolved cases;
+- missing-region meshblock bridge;
+- Groups 1–4;
+- Group 2 pre-earthquake-move exclusion;
+- North Island / never-Canterbury comparison-pool screen;
+- MMI linkage and Low/High intensity restrictions.
 
-**Required action:** determine which exact implementation generated the accepted sample. The public code and manuscript must describe the same algorithm.
+### MatchIt caliper
 
-## 4. Control-pool definition
+The baseline code now explicitly sets a 0.2 caliper on the raw propensity-score scale (`std.caliper = FALSE`) and does not rely on package defaults.
 
-The manuscript states that controls are North Island households that were never exposed to the Canterbury earthquake sequence / never recorded as living in Canterbury in the linked address sources. The uploaded control-pool scripts primarily classify households using the selected pre-earthquake address plus the HES survey address.
+### Provenance safety
 
-**Required action:** confirm whether an "ever Canterbury" screen was applied elsewhere. If yes, add that code. If not, reconcile the manuscript wording before final submission/public release.
+PSM inputs are immutable. Matched treated and comparison datasets are written to new directories. Absolute Data Lab paths and credentials are excluded from the public configuration.
 
-## 5. MatchIt caliper scale
+## Validation-sensitive reconstruction choices
 
-The working PSM scripts call `matchit(..., caliper = 0.2, ...)` without explicitly setting `std.caliper`. The accepted manuscript says the caliper is 0.2 on the **raw propensity-score scale**.
+The following details cannot be identified uniquely from the accepted manuscript plus surviving scripts and therefore require numerical confirmation inside the secure environment:
 
-**Required action:** record the MatchIt version used and confirm the effective caliper scale. In the archival code, set `std.caliper` explicitly so the result is not package-version dependent.
+1. **Appendix B higher-education indicator.** The current adapter uses the documented recoded qualification scale and defines higher education as recoded level 4 or above. Confirm against Table B2/B3 means and coefficients.
+2. **Appendix B weighted household-composition tests.** The current implementation interprets “Weighted” as HES survey weights. Confirm against Table B4.
+3. **Appendix I trimmed ATT-IPW.** The manuscript does not report the numerical trimming threshold. The code implements weight winsorisation without dropping observations and exposes the quantiles as parameters; the default is 1st/99th percentile. Calibrate only if required to reproduce column H, then document the verified threshold.
+4. **Refresh-specific geography fields.** The missing-region meshblock bridge requires a secure address-history extract containing meshblock identifiers. Source field names may vary by IDI refresh and should be mapped into the canonical address contract.
+5. **Baseline PSM survey weights.** Early working code passed HES survey weights to MatchIt, whereas the accepted manuscript does not describe survey-weighted matching. The reconstructed baseline omits those weights. The Table 1 / B1 / main-model validation targets will determine whether that choice reproduces the accepted analysis.
 
-## 6. Matching weights
+## Mandatory pre-release numerical checks
 
-The working scripts compute survey weights and pass `weights = ~weight` to `matchit()`, while the accepted manuscript does not describe survey-weighted propensity-score estimation.
+Run `R/13_validate_manuscript.R` after reconstructing the secure sample. At minimum, confirm:
 
-**Required action:** confirm whether HES survey weights were actually used in the final PSM. If they were, document this in the manuscript/repository. If not, remove the unused argument from the archival code.
+- Table 1 wave-specific treated, eligible-control and matched-control counts (allowing for Stats NZ confidentiality rounding);
+- Table B1 matching balance;
+- main total-income, regular-income and total-expenditure coefficients, SEs and observation counts;
+- Appendix C event-study pre-trend p values;
+- Table 4 stay/relocation coefficients, SEs and N;
+- Tables 5–7 PSM robustness coefficients and sample sizes;
+- Table E1 category coefficients and sample sizes;
+- Appendix G income-heterogeneity results;
+- Appendix H continuous-MMI and alternative-age specifications;
+- Appendix I ATT-IPW bridge results and weight diagnostics.
 
-## 7. In-place mutation of source files
+The validator already encodes the major headline targets. Additional table-specific targets can be added if a discrepancy appears.
 
-The working PSM scripts overwrite the treated-group input CSV after matching. This is fragile and obscures provenance.
+## Public-release hygiene checklist
 
-**Release fix:** archival code must treat inputs as immutable and write matched outputs to new paths.
+Before changing repository visibility or tagging `v1.0.0`:
 
-## 8. Public-release hygiene
+- [ ] Secure numerical validation completed.
+- [ ] Validation output reviewed; no unexplained material discrepancies.
+- [ ] Stats NZ output checking completed for any outputs to be published.
+- [ ] `docs/sessionInfo.txt` generated from the validated run.
+- [ ] Git history checked for raw microdata, row-level extracts, identifiers, credentials and unapproved counts.
+- [ ] Final article DOI added to `CITATION.cff` when available.
+- [ ] Draft release PR reviewed and merged.
+- [ ] Repository visibility changed only after confidentiality review.
 
-Before making the repository public:
+## Release criterion
 
-- remove Data Lab absolute paths and use environment variables/configuration;
-- remove misleading boilerplate authorship/date comments;
-- add an explicit software licence chosen by the authors;
-- add a tagged release matching the final manuscript;
-- record R/package versions (preferably with `renv.lock` or a frozen session-info file);
-- verify that no confidential microdata or unapproved outputs are present anywhere in Git history.
+The reconstructed code is considered **archival-ready** when the accepted manuscript's analytical results are reproduced jointly, rather than when one or two headline coefficients happen to match. The final paper is the specification; the surviving scripts are implementation evidence.
