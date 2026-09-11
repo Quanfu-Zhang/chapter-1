@@ -8,7 +8,7 @@ This file maps the accepted manuscript's reported outputs to the methodological 
 | Table 1 | `R/idi/02_build_wave_samples.R`, `R/03_psm_matching.R` | Sample-construction and matching definitions |
 | Table 2 | `R/04_main_did.R` | Total and regular household income |
 | Table 3 | `R/04_main_did.R` | Total household expenditure; four full-expenditure waves |
-| Figure 2 | `R/05_expenditure_models.R`, `R/12_output_builders.R` | `100 * (exp(beta) - 1)` from `log(1 + |y|)` category models |
+| Figure 2 | `R/05_expenditure_models.R`, `R/12_output_builders.R` | `100 * (exp(beta) - 1)` from `log(1 + abs(y))` category models |
 | Figure 3 | `R/05_expenditure_models.R`, `R/12_output_builders.R` | Survey-wave median-income heterogeneity |
 | Table 4 | `R/09_descriptives_migration.R` | Post-earthquake stay/relocation conditional associations |
 | Tables 5–7 | `R/07_psm_robustness.R` | Caliper 0.1, 1:1 matching, exclude-sex variants |
