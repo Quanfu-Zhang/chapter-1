@@ -44,7 +44,6 @@ docs/
   DATA_ACCESS.md                 Restricted-data access requirements
   DATA_DICTIONARY.md             Canonical variables and schema mapping
   OUTPUT_MAP.md                  Paper outputs and corresponding code modules
-  RECONSTRUCTION_NOTE.md         Provenance and reconstruction choices
 ```
 
 ## Core analytical specification
