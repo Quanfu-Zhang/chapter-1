@@ -20,9 +20,13 @@ suppressPackageStartupMessages({
 source(file.path("R", "00_config.R"))
 source(file.path("R", "01_hes_schema_adapter.R"))
 
-load_one_matched_wave <- function(wave) {
-  t_path <- file.path(MATCHED_TREATED_DIR, paste0(wave, ".csv"))
-  c_path <- file.path(MATCHED_CONTROL_DIR, paste0("CG", wave, ".csv"))
+load_one_matched_wave <- function(
+    wave,
+    matched_treated_dir = MATCHED_TREATED_DIR,
+    matched_control_dir = MATCHED_CONTROL_DIR) {
+
+  t_path <- file.path(matched_treated_dir, paste0(wave, ".csv"))
+  c_path <- file.path(matched_control_dir, paste0("CG", wave, ".csv"))
 
   if (!file.exists(t_path)) {
     stop("Matched treated file not found: ", t_path, ". Run R/03_psm_matching.R first.")
@@ -81,8 +85,19 @@ prepare_analysis_variables <- function(df) {
     )
 }
 
-load_matched_analysis_data <- function(waves = WAVES) {
-  map_dfr(waves, load_one_matched_wave) %>% prepare_analysis_variables()
+load_matched_analysis_data <- function(
+    waves = WAVES,
+    matched_treated_dir = MATCHED_TREATED_DIR,
+    matched_control_dir = MATCHED_CONTROL_DIR) {
+
+  map_dfr(
+    waves,
+    ~ load_one_matched_wave(
+      .x,
+      matched_treated_dir = matched_treated_dir,
+      matched_control_dir = matched_control_dir
+    )
+  ) %>% prepare_analysis_variables()
 }
 
 fit_main_did <- function(data, outcome) {
