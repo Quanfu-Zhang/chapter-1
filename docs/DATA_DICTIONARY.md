@@ -1,6 +1,6 @@
 # Canonical analysis data dictionary
 
-The replication code harmonises two HES naming regimes before any matching or regression is run. Source-specific names should appear only in the extraction/schema-adapter layer.
+The methodological code harmonises two HES naming regimes before matching or regression. Source-specific names appear only in the schema-adapter layer.
 
 ## Core canonical variables
 
@@ -62,7 +62,7 @@ The exact Clean Read source names are preserved from the surviving project scrip
 
 ## Expenditure categories
 
-The analysis uses the 18 HES categories reported in the paper:
+The analysis uses the HES expenditure categories reported in the paper:
 
 1. domestic fuel and power;
 2. housing costs;
@@ -95,11 +95,11 @@ The secure sample builder expects a long administrative address table with these
 - `source` (`IR`, `HLFS`, `ACC`, `MSD`, or `NOTIFY`)
 - `meshblock_code` where available
 
-Source-specific extraction code may rename the underlying IDI fields into this contract before calling `build_wave_samples()`.
+Source-specific secure extraction can rename the underlying IDI fields into this contract before calling `build_wave_samples()`.
 
 ## Public MMI lookup contract
 
-The public spatial step produces a two-column lookup:
+The public spatial step produces a lookup with:
 
 - `meshblock_code`
 - `mmi_intensity`
