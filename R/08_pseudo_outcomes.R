@@ -3,9 +3,8 @@
 # ------------------------------------------------------------------------------
 # Table B3 uses the four full-expenditure waves. Table B4 reports both
 # unweighted and weighted household-composition pseudo-outcome regressions. The
-# reconstruction interprets "Weighted" as HES survey weighting, because the
-# observation count is unchanged and the source HES weight is available in every
-# wave. This interpretation is explicitly checked in the validation workflow.
+# illustrative weighted specification uses the HES survey weight available in
+# the harmonised data.
 # ==============================================================================
 
 suppressPackageStartupMessages({
