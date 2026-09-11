@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use this replication code, please cite both the article and this repository."
-title: "Replication code: The impact of the Canterbury earthquakes on household income and expenditure in the Canterbury region in New Zealand"
+message: "If you use this methodological code, please cite both the article and this repository."
+title: "Methodological code: The impact of the Canterbury earthquakes on household income and expenditure in the Canterbury region in New Zealand"
 type: software
 authors:
   - family-names: Zhang
