@@ -5,6 +5,10 @@
 # This adapter is the ONLY place where those source names should appear.
 # Downstream scripts operate on canonical names and therefore use one analytical
 # pipeline for all survey waves.
+#
+# The adapter is deliberately idempotent: secure intermediate files created by
+# the sample-construction stage are already canonical, and can be passed through
+# this function again without requiring the original HES source names.
 # ==============================================================================
 
 suppressPackageStartupMessages(library(dplyr))
@@ -15,8 +19,46 @@ first_existing <- function(df, candidates, default = NA) {
   df[[hit[[1L]]]]
 }
 
+canonical_columns <- c(
+  "snz_hes_hhld_uid", "ref_person", "ref_age", "ref_education", "ref_sex",
+  "hh_size", "tenure_code", "survey_weight", "total_income", "regular_income",
+  "total_expenditure", "ta_code", "hes_region_code", "meshblock_code"
+)
+
 canonicalise_hes <- function(df, wave) {
   stopifnot(length(wave) == 1L, wave %in% WAVES)
+
+  # Secure intermediate files produced by R/idi/02_build_wave_samples.R are
+  # already canonical. Re-standardise types, retain all provenance columns, and
+  # return them unchanged otherwise.
+  if (all(canonical_columns %in% names(df))) {
+    if (!"wave" %in% names(df)) df$wave <- wave
+    if (!"snz_uid" %in% names(df)) df$snz_uid <- NA_character_
+    if (!"household_comp" %in% names(df)) df$household_comp <- NA_character_
+    if (!"interview_date" %in% names(df)) df$interview_date <- as.Date(NA)
+
+    return(df %>%
+      mutate(
+        wave = as.character(wave),
+        snz_uid = as.character(snz_uid),
+        snz_hes_hhld_uid = as.character(snz_hes_hhld_uid),
+        ref_person = as.logical(ref_person),
+        ref_age = suppressWarnings(as.numeric(ref_age)),
+        ref_education = as.character(ref_education),
+        ref_sex = as.character(ref_sex),
+        hh_size = suppressWarnings(as.numeric(hh_size)),
+        tenure_code = as.character(tenure_code),
+        household_comp = as.character(household_comp),
+        survey_weight = suppressWarnings(as.numeric(survey_weight)),
+        total_income = suppressWarnings(as.numeric(total_income)),
+        regular_income = suppressWarnings(as.numeric(regular_income)),
+        total_expenditure = suppressWarnings(as.numeric(total_expenditure)),
+        ta_code = as.character(ta_code),
+        hes_region_code = as.character(hes_region_code),
+        meshblock_code = as.character(meshblock_code),
+        interview_date = as.Date(interview_date)
+      ))
+  }
 
   if (legacy_wave(wave)) {
     required <- c(
