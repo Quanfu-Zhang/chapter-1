@@ -1,0 +1,31 @@
+# Never commit confidential or derived microdata
+*.csv
+*.parquet
+*.feather
+*.rds
+*.RData
+*.fst
+*.sav
+*.dta
+
+# Local outputs
+output/*
+!output/.gitkeep
+figures/*
+tables/*
+
+# Credentials / environment
+.Renviron
+.env
+*.pem
+*.key
+
+# R / RStudio
+.Rhistory
+.Rproj.user/
+.Ruserdata
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
