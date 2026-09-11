@@ -185,7 +185,7 @@ recode_household_comp <- function(x) {
   case_when(
     grepl("one[- ]?family|^1$", z) ~ "One-family household",
     grepl("two[- ]?family|^2$", z) ~ "Two-family household",
-    grepl("three|3\+|three-or-more", z) ~ "Three-or-more-family household",
+    grepl("three|3[+]|three-or-more", z) ~ "Three-or-more-family household",
     grepl("one[- ]?person|single person", z) ~ "One-person household",
     grepl("non[- ]?family|other multi", z) ~ "Other multi-person household",
     grepl("unident|unknown|not ident", z) ~ "Unidentifiable household",
