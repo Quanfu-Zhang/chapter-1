@@ -1,6 +1,6 @@
 # Code guide
 
-This repository is a **methodological code archive for academic communication**. It explains how the empirical analysis reported in the paper was organised, but it is not a turnkey replication package and does not provide access to the restricted Stats NZ microdata.
+This repository is a **methodological code archive for academic communication**. It explains how the empirical analysis reported in the paper was organised. Restricted-data components are intended to be run within the controlled Stats NZ IDI environment by researchers approved for the relevant project, in accordance with Stats NZ requirements.
 
 ## Reading order
 
@@ -20,7 +20,7 @@ For most readers, the recommended order is:
 12. `R/11_att_ipw.R` — ATT-IPW and bridge specifications.
 13. `R/12_output_builders.R`, `R/14_census_context.R`, and `R/15_appendix_diagnostics.R` — presentation and appendix utilities.
 
-`R/99_run_order.R` is a script map that loads the modules in this sequence. It should be read as documentation of the workflow rather than as a promise that the entire project can be executed outside the original authorised environment.
+`R/99_run_order.R` is a script map that loads the modules in this sequence and documents how they relate.
 
 ## Why there is one schema adapter
 
@@ -32,7 +32,7 @@ This keeps the substantive matching and regression code independent of source-va
 
 Files under `R/idi/` describe the logic applied to restricted IDI data. They are included because the treatment/control definitions and address-history reconstruction are central to the research design.
 
-They are **illustrative methodological code**. Access to IDI data is governed by Stats NZ project approval; possession of this repository or general Data Lab researcher status does not confer permission to use project MAA2024-54 data.
+The public files contain methodological logic only; they do not include database connection configuration or restricted records. Execution with IDI data must take place within the controlled Stats NZ IDI environment by researchers approved for the relevant project and following Stats NZ requirements.
 
 ## Public-data code
 
