@@ -1,10 +1,9 @@
 # ==============================================================================
-# Chapter 1 orchestration
+# Chapter 1 script map / load order
 # ------------------------------------------------------------------------------
-# Sample extraction and address linkage remain explicit secure-environment steps
-# because they require Data Lab connections and refresh-specific table names.
-# Once `treated/`, `control_pool/`, and the baseline matched outputs exist, this
-# file can run the complete estimation and validation pipeline.
+# This public repository is intended for methodological communication rather than
+# independent execution of the restricted IDI project. This file therefore loads
+# the analytical modules in a logical order and documents how they relate.
 # ==============================================================================
 
 source(file.path("R", "00_config.R"))
@@ -20,89 +19,48 @@ source(file.path("R", "09_descriptives_migration.R"))
 source(file.path("R", "10_alternative_specs.R"))
 source(file.path("R", "11_att_ipw.R"))
 source(file.path("R", "12_output_builders.R"))
-source(file.path("R", "13_validate_manuscript.R"))
 source(file.path("R", "14_census_context.R"))
 source(file.path("R", "15_appendix_diagnostics.R"))
 
-run_chapter1_analysis <- function(
-    rebuild_baseline_psm = FALSE,
-    rebuild_psm_robustness = FALSE,
-    run_validation = TRUE) {
-
-  message("Chapter 1: starting analysis stage")
-
-  psm_results <- NULL
-  if (rebuild_baseline_psm) {
-    message("1/10 Running baseline wave-specific PSM")
-    psm_results <- run_all_wave_psm()
-  }
-
-  message("2/10 Main DiD models")
-  matched <- load_matched_analysis_data()
-  main_models <- fit_main_models(matched)
-
-  message("3/10 Detailed expenditure and income heterogeneity")
-  exp_data <- prepare_expenditure_outcomes(matched)
-  expenditure_models <- fit_expenditure_categories(exp_data)
-  heterogeneity_models <- fit_income_heterogeneity(matched)
-
-  message("4/10 Event study and pre-trend tests")
-  event_study <- fit_event_study_models(matched)
-
-  if (rebuild_psm_robustness) {
-    message("5/10 Rebuilding PSM robustness samples")
-    run_reported_psm_checks()
-  } else {
-    message("5/10 Using existing PSM robustness samples")
-  }
-  psm_robustness <- fit_reported_psm_robustness()
-
-  message("6/10 Pseudo-outcome diagnostics")
-  pseudo_covariates <- fit_key_covariate_pseudo_outcomes()
-  pseudo_composition <- fit_household_composition_pseudo_outcomes()
-
-  message("7/10 Descriptive and relocation analyses")
-  table_d1 <- build_table_d1()
-  table_d2 <- build_table_d2()
-  relocation_models <- fit_relocation_models()
-
-  message("8/10 Alternative MMI/age specifications and ATT-IPW")
-  continuous_mmi <- fit_continuous_mmi_models()
-  age_bridge <- fit_age_bridge_models(matched)
-  att_ipw <- fit_appendix_i()
-
-  message("9/10 Figure data / public context")
-  figure2_data <- build_figure2_data(expenditure_models)
-  figure3_data <- build_figure3_data(heterogeneity_models)
-  table_f1 <- build_table_f1()
-
-  validation <- NULL
-  if (run_validation) {
-    message("10/10 Validating against accepted-manuscript targets")
-    validation <- run_manuscript_validation(psm_results)
-  }
-
-  invisible(list(
-    psm_results = psm_results,
-    main_models = main_models,
-    expenditure_models = expenditure_models,
-    heterogeneity_models = heterogeneity_models,
-    event_study = event_study,
-    psm_robustness = psm_robustness,
-    pseudo_covariates = pseudo_covariates,
-    pseudo_composition = pseudo_composition,
-    table_d1 = table_d1,
-    table_d2 = table_d2,
-    relocation_models = relocation_models,
-    continuous_mmi = continuous_mmi,
-    age_bridge = age_bridge,
-    att_ipw = att_ipw,
-    figure2_data = figure2_data,
-    figure3_data = figure3_data,
-    table_f1 = table_f1,
-    validation = validation
-  ))
+chapter1_module_map <- function() {
+  data.frame(
+    stage = c(
+      "Configuration",
+      "HES harmonisation",
+      "Restricted-data sample construction",
+      "Matching",
+      "Main DiD",
+      "Detailed expenditure",
+      "Event study",
+      "Matching robustness",
+      "Pseudo-outcomes",
+      "Migration/descriptives",
+      "Alternative specifications",
+      "ATT-IPW",
+      "Outputs",
+      "Public Census context",
+      "Appendix diagnostics"
+    ),
+    file = c(
+      "R/00_config.R",
+      "R/01_hes_schema_adapter.R",
+      "R/idi/02_build_wave_samples.R",
+      "R/03_psm_matching.R",
+      "R/04_main_did.R",
+      "R/05_expenditure_models.R",
+      "R/06_event_study.R",
+      "R/07_psm_robustness.R and R/07b_matching_sensitivity.R",
+      "R/08_pseudo_outcomes.R",
+      "R/09_descriptives_migration.R",
+      "R/10_alternative_specs.R",
+      "R/11_att_ipw.R",
+      "R/12_output_builders.R",
+      "R/14_census_context.R",
+      "R/15_appendix_diagnostics.R"
+    ),
+    stringsAsFactors = FALSE
+  )
 }
 
-message("Chapter 1 replication functions loaded.")
-message("See docs/REPRODUCTION_GUIDE.md before running restricted-data stages.")
+message("Chapter 1 methodological code loaded.")
+message("See docs/CODE_GUIDE.md for the reading order and docs/DATA_ACCESS.md for access limitations.")
