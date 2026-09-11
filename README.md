@@ -14,14 +14,6 @@ The underlying HES and linked administrative microdata are held in Stats NZ's In
 
 The code serves as an illustration of the research design and implementation principles reported in the paper.
 
-## Reconstruction note
-
-The original Chapter 1 code was developed incrementally and included separate pre-/post-2015/16 HES scripts, exploratory blocks, Data Lab-specific paths, and intermediate specifications. The public codebase was reconstructed and cleaned from those surviving scripts together with the final accepted manuscript.
-
-The repository does not claim that every line is the exact historical source code executed during the project. Where the surviving scripts and the accepted paper differ, the public code follows the final analytical specification described in the paper. See `docs/RECONSTRUCTION_NOTE.md`.
-
-A major design feature is `R/01_hes_schema_adapter.R`. HES variable names changed from 2015/16 onward; instead of publishing duplicate “before” and “after” analysis scripts, both naming regimes are converted to one canonical schema before matching or estimation.
-
 ## Repository structure
 
 ```text
