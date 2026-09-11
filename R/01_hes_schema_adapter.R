@@ -15,7 +15,7 @@ suppressPackageStartupMessages(library(dplyr))
 
 first_existing <- function(df, candidates, default = NA) {
   hit <- candidates[candidates %in% names(df)]
-  if (!length(hit)) return(rep(default, nrow(df)))
+  if (!length(hit)) return(default)
   df[[hit[[1L]]]]
 }
 
