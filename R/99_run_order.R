@@ -1,9 +1,11 @@
 # ==============================================================================
 # Chapter 1 script map / load order
 # ------------------------------------------------------------------------------
-# This public repository is intended for methodological communication rather than
-# independent execution of the restricted IDI project. This file therefore loads
-# the analytical modules in a logical order and documents how they relate.
+# This public repository is intended for methodological communication. Restricted-
+# data components are to be used within the controlled Stats NZ IDI environment
+# by researchers approved for the relevant project and following Stats NZ
+# requirements. This file loads the analytical modules in a logical order and
+# documents how they relate.
 # ==============================================================================
 
 source(file.path("R", "00_config.R"))
@@ -63,4 +65,4 @@ chapter1_module_map <- function() {
 }
 
 message("Chapter 1 methodological code loaded.")
-message("See docs/CODE_GUIDE.md for the reading order and docs/DATA_ACCESS.md for access limitations.")
+message("See docs/CODE_GUIDE.md for the reading order and docs/DATA_ACCESS.md for IDI access requirements.")
