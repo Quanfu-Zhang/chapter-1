@@ -131,12 +131,9 @@ ever_canterbury_ids <- function(admin_addresses) {
 }
 
 # The manuscript describes the comparison pool as households that consistently
-# resided in the North Island over the study period. Because the surviving early
-# scripts visibly imposed the North Island restriction on the HES survey address
-# but do not prove that every historical administrative address was screened, we
-# retain BOTH versions as diagnostic flags. The manuscript-strict rule is the
-# public default; the relaxed flag is available only to identify the historical
-# implementation if Table 1 validation fails.
+# resided in the North Island over the study period. The surviving working code
+# also provides evidence for a less restrictive historical screen. Both rules are
+# retained explicitly so the methodological distinction remains transparent.
 north_island_history_status <- function(admin_addresses) {
   standardise_admin_addresses(admin_addresses) %>%
     filter(
@@ -146,7 +143,6 @@ north_island_history_status <- function(admin_addresses) {
     ) %>%
     group_by(snz_uid) %>%
     summarise(
-      n_known_sample_period_addresses = n(),
       all_known_sample_period_addresses_north = all(region_code %in% NORTH_ISLAND_REGION_CODES),
       .groups = "drop"
     )
@@ -275,24 +271,6 @@ build_wave_samples <- function(
   treated_analysis <- enriched %>% filter(treated_analysis %in% TRUE)
   control_pool <- enriched %>% filter(eligible_control %in% TRUE)
 
-  diagnostics <- classified %>%
-    summarise(
-      wave = wave,
-      control_rule = control_rule,
-      valid_reference_households = n(),
-      group1 = sum(group == "Group 1", na.rm = TRUE),
-      group2 = sum(group == "Group 2", na.rm = TRUE),
-      group3 = sum(group == "Group 3", na.rm = TRUE),
-      group4 = sum(group == "Group 4", na.rm = TRUE),
-      missing_address = sum(group == "Missing address", na.rm = TRUE),
-      prequake_exit_exclusions = sum(prequake_exit_evidence, na.rm = TRUE),
-      treated_full = sum(treated_full, na.rm = TRUE),
-      treated_with_low_or_high_mmi = sum(treated_analysis, na.rm = TRUE),
-      controls_hes_north_never_canterbury = sum(control_hes_north_never_canterbury, na.rm = TRUE),
-      controls_manuscript_strict = sum(control_manuscript_strict, na.rm = TRUE),
-      eligible_control_pool = sum(eligible_control, na.rm = TRUE)
-    )
-
   if (write_outputs) {
     dir.create(TREATED_FULL_DIR, recursive = TRUE, showWarnings = FALSE)
     dir.create(TREATED_DIR, recursive = TRUE, showWarnings = FALSE)
@@ -306,7 +284,6 @@ build_wave_samples <- function(
     classified_reference_persons = classified,
     treated_full = treated_full,
     treated_analysis = treated_analysis,
-    control_pool = control_pool,
-    diagnostics = diagnostics
+    control_pool = control_pool
   )
 }
