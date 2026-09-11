@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this replication code, please cite both the article and this repository."
+title: "Replication code: The impact of the Canterbury earthquakes on household income and expenditure in the Canterbury region in New Zealand"
+type: software
+authors:
+  - family-names: Zhang
+    given-names: Quanfu
+  - family-names: Noy
+    given-names: Ilan
+  - family-names: Saglam
+    given-names: Yigit
+repository-code: "https://github.com/Quanfu-Zhang/chapter-1"
+license: CC-BY-4.0
+version: 1.0.0
+preferred-citation:
+  type: article
+  title: "The impact of the Canterbury earthquakes on household income and expenditure in the Canterbury region in New Zealand"
+  authors:
+    - family-names: Zhang
+      given-names: Quanfu
+    - family-names: Noy
+      given-names: Ilan
+    - family-names: Saglam
+      given-names: Yigit
+  journal: "Natural Hazards and Earth System Sciences"
+  year: 2026
