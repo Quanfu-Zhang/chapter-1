@@ -140,20 +140,34 @@ validate_table1 <- function(psm_results) {
   actual <- map_dfr(psm_results, "summary") %>%
     transmute(
       wave,
-      treated = matched_treated,
-      eligible_control = control_pool_eligible_for_matching,
+      treated = treated_pre_match,
+      eligible_control = control_pool_pre_match,
       matched_control = matched_controls
     )
 
-  TABLE1_TARGETS %>%
-    left_join(actual, by = "wave", suffix = c("_target", "_actual")) %>%
-    rowwise() %>%
-    do(bind_rows(
-      validation_row(paste(.$wave, "treated"), .$treated_actual, .$treated_target, 3),
-      validation_row(paste(.$wave, "eligible control"), .$eligible_control_actual, .$eligible_control_target, 3),
-      validation_row(paste(.$wave, "matched control"), .$matched_control_actual, .$matched_control_target, 3)
-    )) %>%
-    ungroup()
+  target_long <- TABLE1_TARGETS %>%
+    pivot_longer(
+      cols = c(treated, eligible_control, matched_control),
+      names_to = "quantity",
+      values_to = "target"
+    )
+  actual_long <- actual %>%
+    pivot_longer(
+      cols = c(treated, eligible_control, matched_control),
+      names_to = "quantity",
+      values_to = "actual"
+    )
+
+  target_long %>%
+    left_join(actual_long, by = c("wave", "quantity")) %>%
+    transmute(
+      item = paste(wave, quantity),
+      actual,
+      target,
+      difference = actual - target,
+      tolerance = 3,
+      pass = abs(difference) <= tolerance
+    )
 }
 
 validate_psm_robustness <- function(models = fit_reported_psm_robustness()) {
@@ -198,8 +212,6 @@ validate_continuous_mmi <- function(models = fit_continuous_mmi_models()) {
   })
 }
 
-# fixest::wald() returns a small named list/data.frame depending on package
-# version. This helper extracts the p value defensively.
 wald_p_value <- function(x) {
   vals <- unlist(x)
   nm <- names(vals)
