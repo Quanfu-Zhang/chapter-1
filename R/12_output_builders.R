@@ -22,8 +22,7 @@ fixest_tidy <- function(model) {
     estimate = ct[[1]],
     std_error = ct[[2]],
     statistic = ct[[3]],
-    p_value = ct[[4]],
-    observations = nobs(model)
+    p_value = ct[[4]]
   )
 }
 
