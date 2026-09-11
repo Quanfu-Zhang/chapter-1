@@ -29,9 +29,7 @@ prepare_matching_input <- function(treated_raw, control_raw, wave, include_sex =
 
   full <- bind_rows(treated, control) %>%
     filter(ref_person) %>%
-    group_by(snz_hes_hhld_uid) %>%
-    filter(n() == 1L) %>%
-    ungroup() %>%
+    distinct(snz_hes_hhld_uid, .keep_all = TRUE) %>%
     mutate(
       ref_education_match = recode_education(ref_education),
       female = recode_female(ref_sex),
@@ -64,12 +62,6 @@ run_wave_psm <- function(
 
   treated_raw <- read_csv(treated_path, show_col_types = FALSE)
   control_raw <- read_csv(control_pool_path, show_col_types = FALSE)
-
-  # Table 1 reports the treatment sample and eligible control pool before PSM.
-  # Keep these counts separate from complete-case counts used by MatchIt.
-  treated_pre_match_n <- n_distinct(as.character(treated_raw$snz_hes_hhld_uid))
-  control_pool_pre_match_n <- n_distinct(as.character(control_raw$snz_hes_hhld_uid))
-
   full <- prepare_matching_input(treated_raw, control_raw, wave, include_sex)
 
   rhs <- c("ref_age", "hh_size", "ref_education_match")
@@ -126,24 +118,9 @@ run_wave_psm <- function(
     thresholds = c(m = 0.1, v = 2)
   )
 
-  summary_row <- tibble(
-    wave = wave,
-    treated_pre_match = treated_pre_match_n,
-    control_pool_pre_match = control_pool_pre_match_n,
-    treated_complete_for_matching = sum(full$treated == 1L),
-    control_complete_for_matching = sum(full$treated == 0L),
-    matched_treated = length(unique(matched_treated_ids)),
-    matched_controls = length(unique(matched_control_ids)),
-    caliper = caliper,
-    ratio = ratio,
-    include_sex = include_sex,
-    raw_caliper = raw_caliper
-  )
-
   list(
     matchit = m,
     balance = balance,
-    summary = summary_row,
     matched_treated_ids = matched_treated_ids,
     matched_control_ids = matched_control_ids
   )
