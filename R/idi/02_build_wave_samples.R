@@ -55,6 +55,8 @@ resolve_prequake_address <- function(admin_addresses) {
 
   ids_with_window <- unique(latest_window$snz_uid)
 
+  # The accepted manuscript describes the long IR lookback as a recovery rule
+  # for otherwise unresolved cases, rather than a source-priority rule.
   ir_lookback <- a %>%
     filter(
       source == "IR",
@@ -128,7 +130,35 @@ ever_canterbury_ids <- function(admin_addresses) {
     pull(snz_uid)
 }
 
-classify_residence_groups <- function(hes_wave, admin_addresses) {
+# The manuscript describes the comparison pool as households that consistently
+# resided in the North Island over the study period. Because the surviving early
+# scripts visibly imposed the North Island restriction on the HES survey address
+# but do not prove that every historical administrative address was screened, we
+# retain BOTH versions as diagnostic flags. The manuscript-strict rule is the
+# public default; the relaxed flag is available only to identify the historical
+# implementation if Table 1 validation fails.
+north_island_history_status <- function(admin_addresses) {
+  standardise_admin_addresses(admin_addresses) %>%
+    filter(
+      address_date >= HES_SAMPLE_START,
+      address_date <= HES_SAMPLE_END,
+      !is.na(region_code)
+    ) %>%
+    group_by(snz_uid) %>%
+    summarise(
+      n_known_sample_period_addresses = n(),
+      all_known_sample_period_addresses_north = all(region_code %in% NORTH_ISLAND_REGION_CODES),
+      .groups = "drop"
+    )
+}
+
+classify_residence_groups <- function(
+    hes_wave,
+    admin_addresses,
+    control_rule = c("manuscript_strict", "hes_north_never_canterbury")) {
+
+  control_rule <- match.arg(control_rule)
+
   ref <- hes_wave %>%
     filter(ref_person) %>%
     distinct(snz_hes_hhld_uid, .keep_all = TRUE) %>%
@@ -151,9 +181,11 @@ classify_residence_groups <- function(hes_wave, admin_addresses) {
     )
 
   ever_chc <- ever_canterbury_ids(admin_addresses)
+  ni_history <- north_island_history_status(admin_addresses)
 
   ref %>%
     left_join(selected, by = "snz_uid") %>%
+    left_join(ni_history, by = "snz_uid") %>%
     mutate(
       group = case_when(
         prequake_region == CANTERBURY_REGION_CODE & hes_region_num == CANTERBURY_REGION_CODE ~ "Group 1",
@@ -170,11 +202,20 @@ classify_residence_groups <- function(hes_wave, admin_addresses) {
         interview_date > prequake_address_date,
       ever_canterbury_admin = snz_uid %in% ever_chc,
       treated_full = group %in% c("Group 1", "Group 2") & !prequake_exit_evidence,
-      eligible_control =
+      control_hes_north_never_canterbury =
         group == "Group 4" &
         hes_region_num %in% NORTH_ISLAND_REGION_CODES &
-        !ever_canterbury_admin &
-        hes_region_num != CANTERBURY_REGION_CODE
+        !ever_canterbury_admin,
+      control_manuscript_strict =
+        control_hes_north_never_canterbury &
+        prequake_region %in% NORTH_ISLAND_REGION_CODES &
+        all_known_sample_period_addresses_north %in% TRUE,
+      eligible_control = if_else(
+        control_rule == "manuscript_strict",
+        control_manuscript_strict,
+        control_hes_north_never_canterbury
+      ),
+      control_rule = control_rule
     )
 }
 
@@ -207,18 +248,26 @@ build_wave_samples <- function(
     admin_addresses,
     mmi_lookup,
     write_outputs = FALSE,
-    wave = unique(hes_wave$wave)) {
+    wave = unique(hes_wave$wave),
+    control_rule = c("manuscript_strict", "hes_north_never_canterbury")) {
 
   stopifnot(length(wave) == 1L, wave %in% WAVES)
+  control_rule <- match.arg(control_rule)
 
-  classified <- classify_residence_groups(hes_wave, admin_addresses) %>% attach_mmi(mmi_lookup)
+  classified <- classify_residence_groups(
+    hes_wave,
+    admin_addresses,
+    control_rule = control_rule
+  ) %>% attach_mmi(mmi_lookup)
 
   labels <- classified %>%
     select(
       snz_hes_hhld_uid, group, prequake_exit_evidence,
       prequake_address_date, prequake_region, prequake_meshblock,
       prequake_source, prequake_address_rule, bridge_same_meshblock,
-      mmi_intensity, mmi_group, treated_full, treated_analysis, eligible_control
+      mmi_intensity, mmi_group, treated_full, treated_analysis,
+      control_hes_north_never_canterbury, control_manuscript_strict,
+      eligible_control, control_rule
     )
 
   enriched <- hes_wave %>% left_join(labels, by = "snz_hes_hhld_uid")
@@ -229,6 +278,7 @@ build_wave_samples <- function(
   diagnostics <- classified %>%
     summarise(
       wave = wave,
+      control_rule = control_rule,
       valid_reference_households = n(),
       group1 = sum(group == "Group 1", na.rm = TRUE),
       group2 = sum(group == "Group 2", na.rm = TRUE),
@@ -238,6 +288,8 @@ build_wave_samples <- function(
       prequake_exit_exclusions = sum(prequake_exit_evidence, na.rm = TRUE),
       treated_full = sum(treated_full, na.rm = TRUE),
       treated_with_low_or_high_mmi = sum(treated_analysis, na.rm = TRUE),
+      controls_hes_north_never_canterbury = sum(control_hes_north_never_canterbury, na.rm = TRUE),
+      controls_manuscript_strict = sum(control_manuscript_strict, na.rm = TRUE),
       eligible_control_pool = sum(eligible_control, na.rm = TRUE)
     )
 
