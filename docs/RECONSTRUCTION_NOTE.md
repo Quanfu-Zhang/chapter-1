@@ -13,7 +13,7 @@ The public archive is designed for academic communication: readers should be abl
 When the surviving working scripts and the accepted paper disagree, the reconstruction follows this order:
 
 1. **Accepted manuscript** — authoritative for the analytical specification and interpretation reported publicly.
-2. **Surviving project scripts** — used for source-table names, variable-name regimes, coding clues, and implementation details that are consistent with the final paper.
+2. **Surviving project scripts** — used for source-variable regimes, coding clues, and implementation details that are consistent with the final paper.
 3. **Explicit reconstruction choices** — used where neither source uniquely identifies the historical implementation.
 
 The purpose is not to recover an unverifiable line-for-line historical script. It is to present a coherent implementation of the methods described in the final paper.
@@ -48,11 +48,11 @@ The surviving extraction scripts selected address records partly through a hard-
 
 The accepted paper describes wave-specific 1:2 nearest-neighbour matching without replacement using age, household size, sex, and highest qualification. The public code makes these analytical choices explicit rather than relying on package defaults.
 
-## What this repository does not claim
+## Restricted-data use
 
-This repository does **not** claim to be an independently executable replication archive for the restricted IDI analysis. The project data are governed by Stats NZ project-specific approval, and general Data Lab researcher status does not authorise access to project MAA2024-54 data.
+Restricted-data components are intended to be run within the controlled Stats NZ IDI environment by researchers approved for the relevant project, in accordance with Stats NZ requirements. The public archive contains methodological code and documentation but no database connection configuration or restricted records.
 
-It also does not claim that every implementation detail can be uniquely inferred from the surviving historical code. Where an exact historical choice cannot be recovered, the code uses a transparent implementation that is consistent with the final manuscript and suitable for methodological discussion.
+Where an exact historical implementation choice cannot be recovered, the code uses a transparent implementation that is consistent with the final manuscript and suitable for methodological discussion.
 
 ## Appropriate use
 
@@ -62,6 +62,6 @@ The archive is intended to support:
 - demonstrating how the HES schema change was handled;
 - illustrating address-history reconstruction and treatment/control definitions;
 - communicating the matching, DiD, heterogeneity, and robustness specifications;
-- adapting similar ideas within a researcher's own separately approved project and data environment.
+- adapting similar ideas within an appropriately approved research environment.
 
-For data-access limitations, see `docs/DATA_ACCESS.md`. For a file-by-file reading guide, see `docs/CODE_GUIDE.md`.
+For data-access requirements, see `docs/DATA_ACCESS.md`. For a file-by-file reading guide, see `docs/CODE_GUIDE.md`.
