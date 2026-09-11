@@ -13,10 +13,6 @@
 #                      snz_uid, address_date, region_code, source; and preferably
 #                      meshblock_code for the missing-region bridge
 #   mmi_lookup:        meshblock_code, mmi_intensity
-#
-# The address input should contain records from IR, HLFS, ACC, MSD and the
-# cross-agency address-notification dataset. IR records should already be limited
-# to valid addresses if an address-status field is available.
 # ==============================================================================
 
 suppressPackageStartupMessages({
@@ -31,7 +27,6 @@ standardise_admin_addresses <- function(x) {
   required <- c("snz_uid", "address_date", "region_code", "source")
   missing <- setdiff(required, names(x))
   if (length(missing)) stop("Address fields missing: ", paste(missing, collapse = ", "))
-
   if (!"meshblock_code" %in% names(x)) x$meshblock_code <- NA_character_
 
   x %>%
@@ -45,9 +40,6 @@ standardise_admin_addresses <- function(x) {
     filter(!is.na(snz_uid), !is.na(address_date))
 }
 
-# Select the latest address in the stated 2010-01-01 to 2011-02-22 reference
-# window across all linked sources. The extended 2000-2009 IR lookback is used
-# only when no reference-window address is available from any source.
 resolve_prequake_address <- function(admin_addresses) {
   a <- standardise_admin_addresses(admin_addresses)
 
@@ -78,11 +70,6 @@ resolve_prequake_address <- function(admin_addresses) {
 
   selected <- bind_rows(latest_window, ir_lookback)
 
-  # Manuscript bridge: when the selected pre-earthquake record has a missing
-  # region, use surrounding address evidence only if the most recent non-missing
-  # pre-earthquake address and the first post-earthquake address point to the same
-  # Canterbury meshblock. The bridge is applied only when meshblock identifiers
-  # exist; otherwise the record remains unresolved and is visible in diagnostics.
   pre_nonmissing <- a %>%
     filter(address_date <= EARTHQUAKE_DATE, !is.na(region_code), !is.na(meshblock_code)) %>%
     arrange(snz_uid, desc(address_date)) %>%
@@ -118,15 +105,9 @@ resolve_prequake_address <- function(admin_addresses) {
         !is.na(prior_meshblock) & !is.na(post_meshblock) &
         prior_meshblock == post_meshblock &
         (prior_region == CANTERBURY_REGION_CODE | post_region == CANTERBURY_REGION_CODE),
-      region_code = if_else(
-        bridge_same_meshblock,
-        CANTERBURY_REGION_CODE,
-        region_code
-      ),
+      region_code = if_else(bridge_same_meshblock, CANTERBURY_REGION_CODE, region_code),
       meshblock_code = if_else(
-        bridge_same_meshblock & is.na(meshblock_code),
-        prior_meshblock,
-        meshblock_code
+        bridge_same_meshblock & is.na(meshblock_code), prior_meshblock, meshblock_code
       ),
       address_rule = if_else(
         bridge_same_meshblock,
@@ -140,9 +121,6 @@ resolve_prequake_address <- function(admin_addresses) {
     )
 }
 
-# Control households are required to have no Canterbury residence recorded in
-# the linked administrative address histories. HES survey residence is checked
-# separately below.
 ever_canterbury_ids <- function(admin_addresses) {
   standardise_admin_addresses(admin_addresses) %>%
     filter(region_code == CANTERBURY_REGION_CODE) %>%
@@ -174,7 +152,7 @@ classify_residence_groups <- function(hes_wave, admin_addresses) {
 
   ever_chc <- ever_canterbury_ids(admin_addresses)
 
-  classified <- ref %>%
+  ref %>%
     left_join(selected, by = "snz_uid") %>%
     mutate(
       group = case_when(
@@ -184,9 +162,6 @@ classify_residence_groups <- function(hes_wave, admin_addresses) {
         !is.na(prequake_region) & prequake_region != CANTERBURY_REGION_CODE & hes_region_num != CANTERBURY_REGION_CODE ~ "Group 4",
         TRUE ~ "Missing address"
       ),
-      # The manuscript excludes a small set of Group 2 cases with evidence that
-      # the HES observation already recorded the household outside Canterbury
-      # after its last Canterbury administrative record but before the earthquake.
       prequake_exit_evidence =
         group == "Group 2" &
         !is.na(interview_date) &
@@ -201,8 +176,6 @@ classify_residence_groups <- function(hes_wave, admin_addresses) {
         !ever_canterbury_admin &
         hes_region_num != CANTERBURY_REGION_CODE
     )
-
-  classified
 }
 
 attach_mmi <- function(classified, mmi_lookup) {
@@ -238,21 +211,17 @@ build_wave_samples <- function(
 
   stopifnot(length(wave) == 1L, wave %in% WAVES)
 
-  classified <- classify_residence_groups(hes_wave, admin_addresses) %>%
-    attach_mmi(mmi_lookup)
+  classified <- classify_residence_groups(hes_wave, admin_addresses) %>% attach_mmi(mmi_lookup)
 
   labels <- classified %>%
     select(
       snz_hes_hhld_uid, group, prequake_exit_evidence,
       prequake_address_date, prequake_region, prequake_meshblock,
       prequake_source, prequake_address_rule, bridge_same_meshblock,
-      mmi_intensity, mmi_group, treated_full, treated_analysis,
-      eligible_control
+      mmi_intensity, mmi_group, treated_full, treated_analysis, eligible_control
     )
 
-  enriched <- hes_wave %>%
-    left_join(labels, by = "snz_hes_hhld_uid")
-
+  enriched <- hes_wave %>% left_join(labels, by = "snz_hes_hhld_uid")
   treated_full <- enriched %>% filter(treated_full %in% TRUE)
   treated_analysis <- enriched %>% filter(treated_analysis %in% TRUE)
   control_pool <- enriched %>% filter(eligible_control %in% TRUE)
@@ -273,8 +242,10 @@ build_wave_samples <- function(
     )
 
   if (write_outputs) {
+    dir.create(TREATED_FULL_DIR, recursive = TRUE, showWarnings = FALSE)
     dir.create(TREATED_DIR, recursive = TRUE, showWarnings = FALSE)
     dir.create(CONTROL_POOL_DIR, recursive = TRUE, showWarnings = FALSE)
+    write_csv(treated_full, file.path(TREATED_FULL_DIR, paste0(wave, ".csv")))
     write_csv(treated_analysis, file.path(TREATED_DIR, paste0(wave, ".csv")))
     write_csv(control_pool, file.path(CONTROL_POOL_DIR, paste0("CGP", wave, ".csv")))
   }
