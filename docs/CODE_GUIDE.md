@@ -42,4 +42,4 @@ Files under `R/public/` can be understood independently of the restricted househ
 
 The accepted manuscript is the primary description of the empirical design and results. The code is intended to make that design more transparent and easier to discuss. Where an implementation detail is not uniquely recoverable from the surviving historical scripts, the public code uses a clean implementation consistent with the final paper rather than pretending to preserve an exact historical line-for-line record.
 
-See `docs/RECONSTRUCTION_NOTE.md` for provenance details and `docs/OUTPUT_MAP.md` for the link between paper outputs and code modules.
+See `docs/OUTPUT_MAP.md` for the link between paper outputs and code modules.
