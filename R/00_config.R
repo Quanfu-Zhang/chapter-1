@@ -31,6 +31,8 @@ HIGH_MMI_MIN <- 7
 ADDRESS_WINDOW_START <- as.Date("2010-01-01")
 EARTHQUAKE_DATE <- as.Date("2011-02-22")
 IR_LOOKBACK_START <- as.Date("2000-01-01")
+HES_SAMPLE_START <- as.Date("2006-07-01")
+HES_SAMPLE_END <- as.Date("2018-06-30")
 
 legacy_wave <- function(wave) as.integer(wave) <= 1415L
 clean_read_wave <- function(wave) as.integer(wave) >= 1516L
